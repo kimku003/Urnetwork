@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     # Local apps
     'users.apps.UsersConfig',
     'posts.apps.PostsConfig',
-    'relationships.apps.RelationshipsConfig', 
+    'relationships.apps.RelationshipsConfig',
     'notifications.apps.NotificationsConfig',
     'direct_messages.apps.DirectMessagesConfig',
 ]
