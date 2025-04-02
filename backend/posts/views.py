@@ -53,12 +53,22 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def comment(self, request, pk=None):
         post = self.get_object()
-        serializer = CommentSerializer(data=request.data)
+        comment_data = {
+            'content': request.data.get('content'),
+            'post': post.id,
+            'author': request.user.id
+        }
+        
+        serializer = CommentSerializer(
+            data=comment_data,
+            context={'request': request}
+        )
         
         if serializer.is_valid():
-            serializer.save(user=request.user, post=post)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
+        print("Erreurs de validation:", serializer.errors)  # Pour le débogage
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
@@ -77,6 +87,13 @@ class PostViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(shared_post)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'])
+    def comments(self, request, pk=None):
+        post = self.get_object()
+        comments = post.comments.all().order_by('-created_at')
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
