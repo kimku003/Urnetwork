@@ -16,6 +16,14 @@ class Post(models.Model):
         related_name='liked_posts',
         blank=True
     )
+    original_post = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='shares'
+    )
+    share_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['-created_at']
@@ -24,15 +32,41 @@ class Post(models.Model):
         return f"Post de {self.author.username} ({self.created_at})"
 
 
+class Reaction(models.Model):
+    LIKE = 'like'
+    LOVE = 'love'
+    HAHA = 'haha'
+    WOW = 'wow'
+    SAD = 'sad'
+    ANGRY = 'angry'
+    
+    REACTION_CHOICES = [
+        (LIKE, '👍'),
+        (LOVE, '❤️'),
+        (HAHA, '😂'),
+        (WOW, '😮'),
+        (SAD, '😢'),
+        (ANGRY, '😠'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='reactions')
+    reaction_type = models.CharField(max_length=10, choices=REACTION_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'post']
+
+
 class Comment(models.Model):
-    post = models.ForeignKey(
-        Post,
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+    post = models.ForeignKey(
+        'Post', 
+        on_delete=models.CASCADE, 
         related_name='comments'
     )
     content = models.TextField()
@@ -40,7 +74,7 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Commentaire de {self.author.username} sur {self.post}"
