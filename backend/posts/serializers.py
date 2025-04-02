@@ -12,14 +12,16 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
-    comments = CommentSerializer(many=True, read_only=True)
-    likes_count = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'image', 'author', 'author_username', 
-                 'created_at', 'updated_at', 'comments', 'likes_count']
+        fields = ['id', 'content', 'author', 'author_username', 'created_at', 'image', 'image_url']
         read_only_fields = ['author']
 
-    def get_likes_count(self, obj):
-        return obj.likes.count()
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+        return None
