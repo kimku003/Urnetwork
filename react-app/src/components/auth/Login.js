@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
+import { ArrowRightOnRectangleIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import IconButton from '../common/IconButton';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -49,7 +51,7 @@ const Login = () => {
         className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md"
       >
         <h2 className="text-2xl font-bold text-center mb-6">Connexion</h2>
-        
+
         <AnimatePresence>
           {error && (
             <motion.div
@@ -90,23 +92,30 @@ const Login = () => {
             />
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
+          <IconButton
+            icon={ArrowRightOnRectangleIcon}
+            label="Se connecter"
             disabled={loading}
-            className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-t-2 border-white rounded-full animate-spin mr-2" />
-                Connexion...
-              </div>
-            ) : (
-              'Se connecter'
-            )}
-          </motion.button>
+            loading={loading}
+            className="w-full mb-4"
+            onClick={handleLogin}
+          />
         </form>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center mt-4 text-gray-600 flex items-center justify-center space-x-2"
+        >
+          <span>Pas encore de compte ?</span>
+          <Link to="/register">
+            <IconButton
+              icon={UserPlusIcon}
+              label="Créer un compte"
+              variant="secondary"
+            />
+          </Link>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
