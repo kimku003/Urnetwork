@@ -4,6 +4,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Feed from './components/feed/Feed';
 import Profile from './components/profile/Profile';
+import Settings from './components/settings/Settings';
 import DashboardLayout from './components/layout/DashboardLayout';
 
 const PrivateRoute = ({ children }) => {
@@ -23,6 +24,7 @@ function App() {
       }>
         <Route index element={<Feed />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>
   );

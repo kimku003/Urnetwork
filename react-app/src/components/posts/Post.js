@@ -2,25 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { CSSTransition } from 'react-transition-group';
+import { motion } from 'framer-motion';
+import PostContent from './PostContent';
 
-const PostContent = ({ content, maxLength = 280 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const shouldTruncate = content.length > maxLength;
-  const displayText = shouldTruncate && !isExpanded 
-    ? `${content.slice(0, maxLength)}...` 
-    : content;
-
+const UserAvatar = ({ username }) => {
+  if (!username) return null;
+  
   return (
-    <div>
-      <p className="text-gray-800 whitespace-pre-wrap">{displayText}</p>
-      {shouldTruncate && (
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-blue-500 hover:text-blue-600 text-sm font-medium mt-1"
-        >
-          {isExpanded ? 'Voir moins' : 'Voir plus'}
-        </button>
-      )}
+    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white">
+      {username[0].toUpperCase()}
     </div>
   );
 };
@@ -29,9 +19,7 @@ const SharedPost = ({ post }) => {
   return (
     <div className="border rounded-lg p-4 mt-3 bg-gray-50">
       <div className="flex items-center space-x-3 mb-2">
-        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 flex items-center justify-center text-white text-sm">
-          {post.author_username[0].toUpperCase()}
-        </div>
+        <UserAvatar username={post.author_username} />
         <div>
           <div className="font-medium text-sm">{post.author_username}</div>
           <div className="text-xs text-gray-500">
@@ -55,6 +43,8 @@ const Post = ({ post, onUpdate }) => {
   const [showReactions, setShowReactions] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareContent, setShareContent] = useState('');
 
   const handleReaction = async (type) => {
     try {
@@ -89,14 +79,32 @@ const Post = ({ post, onUpdate }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `http://localhost:8000/api/posts/${post.id}/share/`,
+        { content: shareContent },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      setShowShareModal(false);
+      setShareContent('');
+      onUpdate();
+    } catch (error) {
+      console.error('Erreur de partage:', error);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+    >
       {/* En-tête du post */}
       <div className="p-4 flex items-center space-x-3">
         <Link to={`/profile/${post.author_username}`}>
-          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white">
-            {post.author_username[0].toUpperCase()}
-          </div>
+          <UserAvatar username={post.author_username} />
         </Link>
         <div>
           <Link to={`/profile/${post.author_username}`} className="font-semibold hover:text-blue-600">
@@ -108,14 +116,30 @@ const Post = ({ post, onUpdate }) => {
         </div>
       </div>
 
+      {/* Post partagé */}
+      {post.original_post && (
+        <div className="mx-4 mt-4 p-4 border rounded-lg bg-gray-50">
+          <div className="flex items-center space-x-3 mb-2">
+            <UserAvatar username={post.original_post.author_username} />
+            <div>
+              <p className="font-semibold">{post.original_post.author_username}</p>
+              <p className="text-sm text-gray-500">
+                {new Date(post.original_post.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          <p className="text-gray-800">{post.original_post.content}</p>
+        </div>
+      )}
+
       {/* Contenu du post */}
-      <div className="px-4 pb-4">
-        <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>
+      <div className="mt-3 px-4 pb-4">
+        <PostContent content={post.content} />
         {post.image_url && (
           <img 
             src={post.image_url} 
             alt="" 
-            className="mt-4 rounded-lg max-h-96 w-full object-cover cursor-pointer"
+            className="mt-4 rounded-lg max-h-96 w-full object-cover"
           />
         )}
       </div>
@@ -144,6 +168,13 @@ const Post = ({ post, onUpdate }) => {
           >
             Commenter
           </button>
+
+          <button 
+            onClick={() => setShowShareModal(true)}
+            className="text-blue-500 hover:text-blue-600"
+          >
+            Partager
+          </button>
         </div>
 
         {/* Menu des réactions */}
@@ -167,9 +198,7 @@ const Post = ({ post, onUpdate }) => {
             {post.comments?.map((comment) => (
               <div key={comment.id} className="flex space-x-3">
                 <div className="flex-shrink-0">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white">
-                    {comment.author_username[0].toUpperCase()}
-                  </div>
+                  <UserAvatar username={comment.author_username} />
                 </div>
                 <div className="flex-grow">
                   <div className="bg-gray-50 rounded-lg p-3">
@@ -201,8 +230,46 @@ const Post = ({ post, onUpdate }) => {
             </form>
           </div>
         )}
+
+        {/* Modal de partage */}
+        {showShareModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="bg-white rounded-xl p-6 max-w-lg w-full mx-4"
+            >
+              <h3 className="text-xl font-bold mb-4">Partager ce post</h3>
+              <textarea
+                value={shareContent}
+                onChange={(e) => setShareContent(e.target.value)}
+                placeholder="Ajouter un commentaire au partage..."
+                className="w-full p-3 border rounded-lg mb-4"
+                rows="3"
+              />
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Partager
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

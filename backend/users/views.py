@@ -27,11 +27,21 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+        user = request.user
+        return Response({
+            'email': user.email,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'notifications_enabled': getattr(user, 'notifications_enabled', True),
+            'email_notifications': getattr(user, 'email_notifications', True),
+            'profile_privacy': getattr(user, 'profile_privacy', 'public'),
+            'theme': getattr(user, 'theme', 'light')
+        })
 
     def put(self, request):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

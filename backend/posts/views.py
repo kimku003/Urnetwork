@@ -73,20 +73,14 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def share(self, request, pk=None):
-        original_post = self.get_object()
-        content = request.data.get('content', '')
-        
-        shared_post = Post.objects.create(
+        post = self.get_object()
+        new_post = Post.objects.create(
             author=request.user,
-            content=content,
-            original_post=original_post
+            content=request.data.get('content', ''),
+            original_post=post
         )
-        
-        original_post.share_count += 1
-        original_post.save()
-        
-        serializer = self.get_serializer(shared_post)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        post.update_share_count()
+        return Response(PostSerializer(new_post).data)
 
     @action(detail=True, methods=['get'])
     def comments(self, request, pk=None):

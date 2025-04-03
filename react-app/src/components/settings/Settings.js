@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../../services/api';
 
 const Settings = () => {
   const [formData, setFormData] = useState({
@@ -20,16 +20,18 @@ const Settings = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8000/api/users/settings/update/', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await api.get('/users/me/');
         setFormData(prevState => ({
           ...prevState,
-          ...response.data
+          email: response.data.email,
+          notifications_enabled: response.data.notifications_enabled || true,
+          email_notifications: response.data.email_notifications || true,
+          profile_privacy: response.data.profile_privacy || 'public',
+          theme: response.data.theme || 'light'
         }));
       } catch (err) {
         setError("Erreur lors du chargement des données");
+        console.error('Erreur:', err);
       }
     };
 
@@ -39,10 +41,7 @@ const Settings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8000/api/users/settings/update/', formData, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await api.put('/users/me/', formData);
       setMessage("Paramètres mis à jour avec succès");
       setError(null);
     } catch (err) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import Post from '../posts/Post';
 
 const Feed = () => {
@@ -11,13 +11,11 @@ const Feed = () => {
 
   const fetchPosts = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/posts/', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await api.get('/posts/');
       setPosts(response.data);
     } catch (err) {
       setError('Erreur lors du chargement des posts');
+      console.error('Erreur:', err);
     } finally {
       setLoading(false);
     }
@@ -32,16 +30,14 @@ const Feed = () => {
     if (!newPost.trim() && !selectedImage) return;
 
     try {
-      const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('content', newPost);
       if (selectedImage) {
         formData.append('image', selectedImage);
       }
 
-      await axios.post('http://localhost:8000/api/posts/', formData, {
+      await api.post('/posts/', formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         }
       });
