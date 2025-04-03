@@ -11,6 +11,25 @@ class User(AbstractUser):
     website = models.URLField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    notifications_enabled = models.BooleanField(default=True)
+    email_notifications = models.BooleanField(default=True)
+    profile_privacy = models.CharField(
+        max_length=10,
+        choices=[
+            ('public', 'Public'),
+            ('friends', 'Friends Only'),
+            ('private', 'Private')
+        ],
+        default='public'
+    )
+    theme = models.CharField(
+        max_length=5,
+        choices=[
+            ('light', 'Light'),
+            ('dark', 'Dark')
+        ],
+        default='light'
+    )
 
     class Meta:
         verbose_name = _('user')

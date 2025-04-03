@@ -1,26 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Settings = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     newPassword: '',
-    confirmNewPassword: ''
+    confirmNewPassword: '',
+    notifications_enabled: true,
+    email_notifications: true,
+    profile_privacy: 'public',
+    theme: 'light'
   });
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('account');
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8000/api/users/me/', {
+        const response = await axios.get('http://localhost:8000/api/users/settings/update/', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         setFormData(prevState => ({
           ...prevState,
-          email: response.data.email
+          ...response.data
         }));
       } catch (err) {
         setError("Erreur lors du chargement des données");
@@ -34,99 +40,219 @@ const Settings = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.put(
-        'http://localhost:8000/api/users/me/',
-        formData,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
+      await axios.post('http://localhost:8000/api/users/settings/update/', formData, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       setMessage("Paramètres mis à jour avec succès");
       setError(null);
     } catch (err) {
-      setError("Erreur lors de la mise à jour des paramètres");
+      setError(err.response?.data?.detail || "Erreur lors de la mise à jour des paramètres");
       setMessage(null);
     }
   };
 
   const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-2xl mx-auto p-4"
+    >
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold mb-6">Paramètres</h2>
         
-        {message && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-            {message}
+        <div className="mb-6 border-b">
+          <div className="flex space-x-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setActiveTab('account')}
+              className={`py-2 px-4 ${activeTab === 'account' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}
+            >
+              Compte
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setActiveTab('privacy')}
+              className={`py-2 px-4 ${activeTab === 'privacy' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}
+            >
+              Confidentialité
+            </motion.button>
           </div>
-        )}
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        <AnimatePresence mode="wait">
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3 bg-green-100 text-green-700 rounded"
+            >
+              {message}
+            </motion.div>
+          )}
+          
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3 bg-red-100 text-red-700 rounded"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Mot de passe actuel</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        <AnimatePresence mode="wait">
+          {activeTab === 'account' ? (
+            <motion.form
+              key="account"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              onSubmit={handleSubmit}
+            >
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Nouveau mot de passe</label>
-            <input
-              type="password"
-              name="newPassword"
-              value={formData.newPassword}
-              onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Mot de passe actuel</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-2">Confirmer le nouveau mot de passe</label>
-            <input
-              type="password"
-              name="confirmNewPassword"
-              value={formData.confirmNewPassword}
-              onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Nouveau mot de passe</label>
+                <input
+                  type="password"
+                  name="newPassword"
+                  value={formData.newPassword}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-          >
-            Sauvegarder les modifications
-          </button>
-        </form>
+              <div className="mb-6">
+                <label className="block text-gray-700 mb-2">Confirmer le nouveau mot de passe</label>
+                <input
+                  type="password"
+                  name="confirmNewPassword"
+                  value={formData.confirmNewPassword}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              >
+                Sauvegarder les modifications
+              </motion.button>
+            </motion.form>
+          ) : (
+            <motion.div
+              key="privacy"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700">Notifications</label>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => handleChange({ target: { name: 'notifications_enabled', type: 'checkbox', checked: !formData.notifications_enabled } })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.notifications_enabled ? 'bg-blue-500' : 'bg-gray-300'}`}
+                >
+                  <motion.span
+                    animate={{ x: formData.notifications_enabled ? 20 : 2 }}
+                    className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform"
+                  />
+                </motion.button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700">Notifications par email</label>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => handleChange({ target: { name: 'email_notifications', type: 'checkbox', checked: !formData.email_notifications } })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.email_notifications ? 'bg-blue-500' : 'bg-gray-300'}`}
+                >
+                  <motion.span
+                    animate={{ x: formData.email_notifications ? 20 : 2 }}
+                    className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform"
+                  />
+                </motion.button>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">Confidentialité du profil</label>
+                <select
+                  name="profile_privacy"
+                  value={formData.profile_privacy}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="public">Public</option>
+                  <option value="friends">Amis uniquement</option>
+                  <option value="private">Privé</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">Thème</label>
+                <select
+                  name="theme"
+                  value={formData.theme}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="light">Clair</option>
+                  <option value="dark">Sombre</option>
+                </select>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSubmit}
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              >
+                Sauvegarder les préférences
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

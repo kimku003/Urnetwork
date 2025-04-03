@@ -8,63 +8,62 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.db.models import Q
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
 from .models import User
 from .serializers import UserSerializer, UserUpdateSerializer, LoginSerializer
 
+User = get_user_model()
+
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()  # Ajout de l'attribut queryset
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'username'
 
     def get_queryset(self):
-        return User.objects.all()
+        return User.objects.filter(is_active=True)
 
-    def get_serializer_class(self):
-        if self.action == 'update' or self.action == 'partial_update':
-            return UserUpdateSerializer
-        return UserSerializer
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['get'])
-    def me(self, request):
-        try:
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data)
-        except Exception as e:
-            print(f"Erreur dans /me/: {str(e)}")
-            return Response(
-                {"error": "Erreur lors de la récupération du profil"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=False, methods=['get'])
-    def suggestions(self, request):
-        user = request.user
-        friends = User.objects.filter(
-            received_relationships__sender=user,
-            received_relationships__status='accepted'
-        ) | User.objects.filter(
-            sent_relationships__receiver=user,
-            sent_relationships__status='accepted'
-        )
-        
-        suggestions = User.objects.exclude(
-            id__in=[user.id] + list(friends.values_list('id', flat=True))
-        )[:5]
-        
-        serializer = self.get_serializer(suggestions, many=True)
+    def get(self, request):
+        serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'])
-    def search(self, request):
-        query = request.query_params.get('query', '')
-        if len(query) >= 3:
-            users = User.objects.filter(
-                Q(username__icontains=query) |
-                Q(email__icontains=query)
-            ).exclude(id=request.user.id)
-            serializer = self.get_serializer(users, many=True)
+    def put(self, request):
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data)
-        return Response([])
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserSettingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            'email': user.email,
+            'notifications_enabled': getattr(user, 'notifications_enabled', True),
+            'email_notifications': getattr(user, 'email_notifications', True),
+            'profile_privacy': getattr(user, 'profile_privacy', 'public'),
+            'theme': getattr(user, 'theme', 'light')
+        })
+
+    def post(self, request):
+        user = request.user
+        for field in ['notifications_enabled', 'email_notifications', 'profile_privacy', 'theme']:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        
+        if 'email' in request.data:
+            user.email = request.data['email']
+            
+        if 'password' in request.data and request.data['password']:
+            user.set_password(request.data['password'])
+            
+        user.save()
+        return Response({'status': 'success'})
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -101,26 +100,6 @@ class LoginView(APIView):
                 {'error': 'Identifiants invalides'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-class UpdateProfileView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = UserUpdateSerializer
-
-    def put(self, request):
-        serializer = self.serializer_class(
-            request.user,
-            data=request.data,
-            context={'request': request}
-        )
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
         
         return Response(
             serializer.errors,
