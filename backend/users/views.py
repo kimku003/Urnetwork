@@ -4,12 +4,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.db.models import Q
 from .models import User
-from .serializers import UserSerializer, UserUpdateSerializer
+from .serializers import UserSerializer, UserUpdateSerializer, LoginSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()  # Ajout de l'attribut queryset
@@ -77,9 +77,52 @@ class RegisterView(APIView):
                 return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class LoginView(TokenObtainPairView):
+class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
-    
-    def post(self, request, *args, **kwargs):
-        print("Login attempt:", request.data)  # Pour le débogage
-        return super().post(request, *args, **kwargs)
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+            
+            user = authenticate(username=username, password=password)
+            
+            if user is not None:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'user': UserSerializer(user).data
+                })
+            
+            return Response(
+                {'error': 'Identifiants invalides'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+class UpdateProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserUpdateSerializer
+
+    def put(self, request):
+        serializer = self.serializer_class(
+            request.user,
+            data=request.data,
+            context={'request': request}
+        )
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
