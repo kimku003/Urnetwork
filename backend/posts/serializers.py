@@ -28,14 +28,23 @@ class CommentSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source='author.username', read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
-    share_count = serializers.IntegerField(read_only=True)
-    original_post = RecursiveSerializer(read_only=True)
-    is_shared = serializers.SerializerMethodField()
+    reactions_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'image', 'created_at', 'author_username', 
-                 'comments', 'share_count', 'original_post', 'is_shared']
+        fields = ['id', 'content', 'image', 'image_url', 'created_at', 
+                 'author_username', 'comments', 'comments_count', 
+                 'reactions_count', 'original_post']
 
-    def get_is_shared(self, obj):
-        return obj.original_post is not None
+    def get_reactions_count(self, obj):
+        return obj.reactions.count()
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None

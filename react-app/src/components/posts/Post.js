@@ -136,11 +136,22 @@ const Post = ({ post, onUpdate }) => {
       <div className="mt-3 px-4 pb-4">
         <PostContent content={post.content} />
         {post.image_url && (
-          <img 
-            src={post.image_url} 
-            alt="" 
-            className="mt-4 rounded-lg max-h-96 w-full object-cover"
-          />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4 relative"
+          >
+            <img 
+              src={post.image_url}
+              alt=""
+              className="rounded-lg w-full object-cover max-h-96"
+              loading="lazy"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.style.display = 'none';
+              }}
+            />
+          </motion.div>
         )}
       </div>
 
@@ -148,8 +159,10 @@ const Post = ({ post, onUpdate }) => {
       <div className="px-4 py-3 border-t border-gray-100">
         {/* Compteurs */}
         <div className="flex items-center justify-between text-sm text-gray-500">
-          <div>{post.reactions_count} réactions</div>
-          <div>{post.comments?.length || 0} commentaires</div>
+          <div className="flex items-center space-x-4">
+            <span>{post.reactions_count || 0} réactions</span>
+            <span>{post.comments_count || 0} commentaires</span>
+          </div>
         </div>
 
         {/* Boutons d'action */}

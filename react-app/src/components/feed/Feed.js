@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import Post from '../posts/Post';
+import { motion } from 'framer-motion';
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
@@ -50,6 +51,11 @@ const Feed = () => {
     }
   };
 
+  const handleImageError = (event) => {
+    event.target.style.display = 'none';
+    console.error('Erreur de chargement de l\'image');
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -78,6 +84,30 @@ const Feed = () => {
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
             rows="3"
           />
+          
+          {selectedImage && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative"
+            >
+              <img
+                src={URL.createObjectURL(selectedImage)}
+                alt="Prévisualisation"
+                className="mt-2 rounded-lg max-h-64 w-full object-cover"
+                onError={handleImageError}
+              />
+              <button
+                type="button"
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </motion.div>
+          )}
           
           <div className="flex items-center justify-between">
             <input
