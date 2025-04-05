@@ -23,8 +23,13 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return User.objects.filter(is_active=True)
 
-    def partial_update(self, request, *args, **kwargs):
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
+    def update_profile(self, request, username=None):
         user = self.get_object()
+        if 'profile_picture' in request.FILES:
+            user.profile_picture = request.FILES['profile_picture']
+        if 'cover_picture' in request.FILES:
+            user.cover_picture = request.FILES['cover_picture']
         serializer = UserUpdateSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
