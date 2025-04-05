@@ -23,6 +23,14 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return User.objects.filter(is_active=True)
 
+    def partial_update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
