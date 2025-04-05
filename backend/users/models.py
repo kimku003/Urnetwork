@@ -34,3 +34,22 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+
+class Profile(models.Model):
+    VISIBILITY_CHOICES = (
+        ('public', 'Public'),
+        ('friends', 'Amis uniquement'),
+        ('private', 'Privé'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    bio = models.TextField(max_length=500, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    website = models.URLField(max_length=200, blank=True)
+    occupation = models.CharField(max_length=100, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    profile_visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_CHOICES,
+        default='public'
+    )
