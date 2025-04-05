@@ -30,7 +30,7 @@ const Profile = () => {
     website: '',
     occupation: '',
     birth_date: '',
-    profile_visibility: 'public'
+    profile_visibility: 'Public'
   });
 
   const currentUsername = localStorage.getItem('username');
