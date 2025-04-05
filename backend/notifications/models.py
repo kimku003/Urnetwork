@@ -1,42 +1,34 @@
 from django.db import models
-from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+User = get_user_model()
 
 class Notification(models.Model):
-    FRIEND_REQUEST = 'friend_request'
-    POST_LIKE = 'post_like'
-    POST_COMMENT = 'post_comment'
-    
-    NOTIFICATION_TYPES = [
-        (FRIEND_REQUEST, 'Demande d\'ami'),
-        (POST_LIKE, 'J\'aime sur un post'),
-        (POST_COMMENT, 'Commentaire sur un post'),
-    ]
+    NOTIFICATION_TYPES = (
+        ('comment', 'Nouveau commentaire'),
+        ('friend_request', 'Demande d\'ami'),
+        ('mention', 'Mention'),
+        ('like', 'J\'aime')
+    )
 
-    recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    content_type = models.ForeignKey(
+        ContentType, 
         on_delete=models.CASCADE,
-        related_name='notifications'
+        default=ContentType.objects.get_for_model(User).id
     )
-    notification_type = models.CharField(
-        max_length=20,
-        choices=NOTIFICATION_TYPES
-    )
-    sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='sent_notifications'
-    )
-    post = models.ForeignKey(
-        'posts.Post',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-    read = models.BooleanField(default=False)
+    object_id = models.PositiveIntegerField(default=1)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications')
+    text = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.notification_type} de {self.sender} pour {self.recipient}"
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+        ]

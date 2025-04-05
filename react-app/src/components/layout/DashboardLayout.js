@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../common/Logo';
+import NotificationBadge from '../notifications/NotificationBadge';
 import {
   HomeIcon,
   UserIcon,
@@ -88,6 +89,7 @@ const DashboardLayout = () => {
 
             {/* Actions Desktop */}
             <div className="hidden md:flex items-center space-x-4">
+              <NotificationBadge />
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
