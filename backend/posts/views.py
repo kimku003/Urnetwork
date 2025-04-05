@@ -17,6 +17,13 @@ class PostViewSet(viewsets.ModelViewSet):
         context['request'] = self.request
         return context
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        author = self.request.query_params.get('author')
+        if author:
+            queryset = queryset.filter(author__username=author)  # Filtrer par auteur
+        return queryset
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 

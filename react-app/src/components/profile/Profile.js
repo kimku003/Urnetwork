@@ -30,7 +30,7 @@ const Profile = () => {
     try {
       const token = localStorage.getItem('token');
       const profileResponse = await axios.get(
-        `http://localhost:8000/api/users/${username || currentUsername}/`,
+        `http://localhost:8000/api/users/${currentUsername}/`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       setProfile(profileResponse.data);
@@ -43,8 +43,9 @@ const Profile = () => {
         website: profileResponse.data.website || ''
       });
 
+      // Correction : Utilisation stricte du filtre `author` pour récupérer uniquement les posts de l'utilisateur connecté
       const postsResponse = await axios.get(
-        `http://localhost:8000/api/posts/?author=${username || currentUsername}`,
+        `http://localhost:8000/api/posts/?author=${currentUsername}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       setPosts(postsResponse.data);
@@ -308,25 +309,35 @@ const Profile = () => {
         {posts.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
             <div className="text-gray-500 mb-4">
-              {isOwnProfile ? 'Vous n\'avez' : `${profile?.username} n'a`} pas encore publié de contenu
+              Vous n'avez pas encore publié de contenu
             </div>
-            {isOwnProfile && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-blue-500 hover:text-blue-600"
-              >
-                Créer votre première publication
-              </motion.button>
-            )}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="text-blue-500 hover:text-blue-600"
+            >
+              Créer votre première publication
+            </motion.button>
           </div>
         ) : (
-          <div className="grid gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="grid gap-8"
+          >
             {posts.map((post) => (
-              <Post key={post.id} post={post} onUpdate={fetchProfile} />
+              <motion.div
+                key={post.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-white rounded-lg shadow-md p-4"
+              >
+                <Post post={post} onUpdate={fetchProfile} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
