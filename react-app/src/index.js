@@ -5,6 +5,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import App from './App';
 import './index.css';
+import './styles/global.css';
 
 const theme = createTheme({
   palette: {

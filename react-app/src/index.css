@@ -198,3 +198,20 @@ code {
   --content-width: 1280px;
   --spacing-unit: 1.5rem;
 }
+
+:root {
+  --bg-light: #ffffff;
+  --text-light: #000000;
+  --bg-dark: #1a202c;
+  --text-dark: #ffffff;
+}
+
+html {
+  background-color: var(--bg-light);
+  color: var(--text-light);
+}
+
+html.dark {
+  background-color: var(--bg-dark);
+  color: var(--text-dark);
+}

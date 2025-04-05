@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FiSun, FiMoon } from 'react-icons/fi';
 import api from '../../services/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Settings = () => {
+  const { theme: globalTheme, toggleTheme } = useTheme();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,7 +31,7 @@ const Settings = () => {
           notifications_enabled: response.data.notifications_enabled || true,
           email_notifications: response.data.email_notifications || true,
           profile_privacy: response.data.profile_privacy || 'public',
-          theme: response.data.theme || 'light'
+          theme: response.data.theme || globalTheme
         }));
       } catch (err) {
         setError("Erreur lors du chargement des données");
@@ -36,7 +40,7 @@ const Settings = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [globalTheme]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,11 +55,18 @@ const Settings = () => {
   };
 
   const handleChange = (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setFormData({
-      ...formData,
-      [e.target.name]: value
-    });
+    const { name, type, checked, value } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: newValue
+    }));
+
+    // Si c'est le thème qui change, on appelle aussi toggleTheme
+    if (name === 'theme') {
+      toggleTheme();
+    }
   };
 
   return (
@@ -64,16 +75,20 @@ const Settings = () => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-2xl mx-auto p-4"
     >
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-6">Paramètres</h2>
+      <div className="bg-white dark:bg-dark-card rounded-lg shadow-md p-6 dark:text-dark-text">
+        <h2 className="text-2xl font-bold mb-6 dark:text-dark-text">Paramètres</h2>
         
-        <div className="mb-6 border-b">
+        <div className="mb-6 border-b dark:border-dark-border">
           <div className="flex space-x-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setActiveTab('account')}
-              className={`py-2 px-4 ${activeTab === 'account' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}
+              className={`py-2 px-4 ${
+                activeTab === 'account' 
+                  ? 'border-b-2 border-blue-500 text-blue-500' 
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}
             >
               Compte
             </motion.button>
@@ -128,7 +143,8 @@ const Settings = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 
+                    dark:bg-dark-bg dark:border-dark-border dark:text-dark-text"
                 />
               </div>
 
@@ -218,7 +234,8 @@ const Settings = () => {
                   name="profile_privacy"
                   value={formData.profile_privacy}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500
+                    dark:bg-dark-bg dark:border-dark-border dark:text-dark-text"
                 >
                   <option value="public">Public</option>
                   <option value="friends">Amis uniquement</option>
@@ -226,17 +243,35 @@ const Settings = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-gray-700 mb-2">Thème</label>
-                <select
-                  name="theme"
-                  value={formData.theme}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <div className="flex items-center justify-between">
+                <label className="text-gray-700 dark:text-dark-text">
+                  Thème {formData.theme === 'dark' ? 'sombre' : 'clair'}
+                </label>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => handleChange({ 
+                    target: { 
+                      name: 'theme', 
+                      value: formData.theme === 'light' ? 'dark' : 'light' 
+                    } 
+                  })}
+                  className={`relative inline-flex h-10 w-20 items-center rounded-full transition-colors p-1
+                    ${formData.theme === 'dark' ? 'bg-gray-700' : 'bg-blue-100'}`}
                 >
-                  <option value="light">Clair</option>
-                  <option value="dark">Sombre</option>
-                </select>
+                  <motion.div
+                    animate={{ x: formData.theme === 'dark' ? 40 : 0 }}
+                    className={`flex items-center justify-center h-8 w-8 rounded-full 
+                      ${formData.theme === 'dark' 
+                        ? 'bg-gray-900 dark:bg-gray-800' 
+                        : 'bg-blue-500'}`}
+                  >
+                    {formData.theme === 'dark' ? 
+                      <FiMoon className="text-white" /> : 
+                      <FiSun className="text-white" />
+                    }
+                  </motion.div>
+                </motion.button>
               </div>
 
               <motion.button

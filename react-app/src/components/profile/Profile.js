@@ -22,6 +22,8 @@ const Profile = () => {
   });
   const [coverImage, setCoverImage] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const currentUsername = localStorage.getItem('username');
   const isOwnProfile = !username || username === currentUsername;
@@ -98,6 +100,19 @@ const Profile = () => {
     }
   };
 
+  // Fonction pour changer le thème
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
+
+  // Fonction pour filtrer les posts
+  const filteredPosts = posts.filter(post =>
+    post.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -115,7 +130,28 @@ const Profile = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto bg-gray-50 shadow-lg rounded-lg overflow-hidden">
+    <div className={`max-w-5xl mx-auto bg-gray-50 shadow-lg rounded-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800 text-white' : ''}`}>
+      {/* Bouton de changement de thème */}
+      <div className="flex justify-end p-4">
+        <button
+          onClick={toggleTheme}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+        >
+          {theme === 'light' ? 'Mode Sombre' : 'Mode Clair'}
+        </button>
+      </div>
+
+      {/* Champ de recherche */}
+      <div className="p-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Rechercher dans les publications..."
+          className="w-full p-2 border rounded-lg"
+        />
+      </div>
+
       {/* Photo de couverture */}
       <div className="relative h-72 bg-gray-300">
         {profile?.cover_picture ? (
@@ -302,23 +338,15 @@ const Profile = () => {
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-800">Publications</h2>
           <span className="text-gray-500">
-            {posts.length} publication{posts.length > 1 ? 's' : ''}
+            {filteredPosts.length} publication{filteredPosts.length > 1 ? 's' : ''}
           </span>
         </div>
         
-        {posts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
             <div className="text-gray-500 mb-4">
-              Vous n'avez pas encore publié de contenu
+              Aucun résultat trouvé
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="text-blue-500 hover:text-blue-600"
-            >
-              Créer votre première publication
-            </motion.button>
           </div>
         ) : (
           <motion.div
@@ -327,7 +355,7 @@ const Profile = () => {
             transition={{ duration: 0.5, ease: 'easeOut' }}
             className="grid gap-8"
           >
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <motion.div
                 key={post.id}
                 whileHover={{ scale: 1.02 }}

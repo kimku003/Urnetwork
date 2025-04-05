@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 dark:bg-dark-primary text-gray-900 dark:text-dark-text-primary transition-colors duration-200;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply dark:text-dark-text-primary;
+  }
+
+  p {
+    @apply dark:text-dark-text-secondary;
+  }
+
+  input, textarea, select {
+    @apply bg-white dark:bg-dark-secondary border-gray-300 dark:border-dark-border 
+    text-gray-900 dark:text-dark-text-primary;
+  }
+
+  button {
+    @apply dark:text-dark-text-primary disabled:dark:bg-dark-accent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-dark-secondary rounded-lg shadow-md p-6;
+  }
+
+  .input {
+    @apply w-full p-2 rounded border focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
+    bg-white dark:bg-dark-secondary border-gray-300 dark:border-dark-border 
+    text-gray-900 dark:text-dark-text-primary;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-colors duration-200
+    focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-dark-primary;
+  }
+
+  .btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600 text-white
+    dark:bg-blue-600 dark:hover:bg-blue-700;
+  }
+}

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
@@ -27,6 +28,19 @@ module.exports = {
         'slide-in': 'slideIn 0.4s ease-out',
         'scale-in': 'scaleIn 0.3s ease-out',
         'pop-in': 'popIn 0.4s ease-out'
+      },
+      colors: {
+        dark: {
+          primary: '#1a1a1a',    // Fond principal
+          secondary: '#2d2d2d',  // Fond secondaire
+          accent: '#3b3b3b',     // Fond tertiaire
+          text: {
+            primary: '#ffffff',   // Texte principal
+            secondary: '#a0aec0', // Texte secondaire
+            muted: '#718096',    // Texte atténué
+          },
+          border: '#404040',
+        }
       }
     }
   },

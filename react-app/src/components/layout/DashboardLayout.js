@@ -55,11 +55,11 @@ const DashboardLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-dark-primary transition-colors duration-200">
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="bg-white shadow-lg sticky top-0 z-50"
+        className="bg-white dark:bg-dark-secondary shadow-lg sticky top-0 z-50"
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
@@ -209,13 +209,15 @@ const DashboardLayout = () => {
       </motion.nav>
 
       {/* Contenu Principal */}
-      <main className="max-w-7xl mx-auto py-6 px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Outlet />
-        </motion.div>
+      <main className="container mx-auto px-4 py-8">
+        <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-md p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Outlet />
+          </motion.div>
+        </div>
       </main>
     </div>
   );
