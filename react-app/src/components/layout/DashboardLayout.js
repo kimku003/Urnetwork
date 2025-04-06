@@ -12,6 +12,7 @@ import {
   Bars3Icon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { FiMail } from 'react-icons/fi';
 
 const NavLink = ({ to, icon: Icon, label, isActive }) => (
   <Link to={to}>
@@ -84,6 +85,17 @@ const DashboardLayout = () => {
                     isActive={location.pathname === link.to}
                   />
                 ))}
+                <Link
+                  to="/messages"
+                  className={`inline-flex items-center px-3 py-2 text-sm font-medium 
+                    ${location.pathname.startsWith('/messages') 
+                      ? 'text-blue-500 border-b-2 border-blue-500' 
+                      : 'text-gray-500 dark:text-dark-text-secondary hover:text-gray-700 dark:hover:text-dark-text-primary'
+                    }`}
+                >
+                  <FiMail className="w-5 h-5 mr-1" />
+                  Messages
+                </Link>
               </div>
             </div>
 
