@@ -23,23 +23,33 @@ class DirectMessageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'])
     def conversations(self, request):
         user = request.user
-        conversations = (
-            DirectMessage.objects.filter(
-                Q(sender=user) | Q(recipient=user)
-            )
-            .values('sender', 'recipient')
-            .distinct()
-        )
         
-        conversation_users = set()
+        # Récupérer tous les utilisateurs avec qui l'utilisateur actuel a échangé des messages
+        conversations = DirectMessage.objects.filter(
+            Q(sender=user) | Q(recipient=user)
+        ).values(
+            'sender', 
+            'recipient'
+        ).distinct()
+        
+        # Collecter tous les IDs des utilisateurs impliqués
+        user_ids = set()
         for conv in conversations:
-            conversation_users.add(conv['sender'])
-            conversation_users.add(conv['recipient'])
+            user_ids.add(conv['sender'])
+            user_ids.add(conv['recipient'])
         
-        conversation_users.discard(user.id)
-        users = User.objects.filter(id__in=conversation_users)
-        from users.serializers import UserSerializer
-        return Response(UserSerializer(users, many=True).data)
+        # Retirer l'ID de l'utilisateur actuel
+        user_ids.discard(user.id)
+        
+        # Récupérer les utilisateurs avec leurs derniers messages
+        users = User.objects.filter(id__in=user_ids)
+        
+        serializer = UserMessageSerializer(users, many=True, context={
+            'request': request,
+            'current_user': user
+        })
+        
+        return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def with_user(self, request):
@@ -63,3 +73,10 @@ class DirectMessageViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(sender=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -55,14 +55,19 @@ const Conversation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !userId) return;
 
     try {
       const response = await messageService.sendMessage(userId, newMessage.trim());
-      setMessages(prev => [...prev, response.data]);
-      setNewMessage('');
+      if (response.data) {
+        setMessages(prev => [...prev, response.data]);
+        setNewMessage(''); // Réinitialiser le champ de message
+        scrollToBottom(); // Faire défiler vers le bas
+      }
     } catch (error) {
       console.error('Erreur lors de l\'envoi du message:', error);
+      // Optionnel : Afficher une notification d'erreur
+      alert('Erreur lors de l\'envoi du message');
     }
   };
 

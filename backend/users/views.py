@@ -36,6 +36,22 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['GET'])
+    def search(self, request):
+        query = request.query_params.get('query', '')
+        if len(query) < 2:
+            return Response([])
+
+        users = self.queryset.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query)
+        ).exclude(
+            id=request.user.id
+        )[:10]
+
+        serializer = self.get_serializer(users, many=True)
+        return Response(serializer.data)
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 

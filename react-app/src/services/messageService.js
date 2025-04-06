@@ -1,6 +1,6 @@
 import api from './api';
 
-export const messageService = {
+const messageService = {
   getConversations: () => api.get('/messages/conversations/'),
   
   getMessagesWithUser: (userId) => 
@@ -9,7 +9,7 @@ export const messageService = {
   sendMessage: (recipientId, content) => 
     api.post('/messages/', {
       recipient_id: recipientId,
-      content
+      content: content
     }),
   
   markAsRead: (messageId) => 

@@ -18,6 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+from direct_messages.views import DirectMessageViewSet
+
+router = DefaultRouter()
+router.register(r'messages', DirectMessageViewSet, basename='messages')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +31,5 @@ urlpatterns = [
     path('api/', include('relationships.urls')),
     path('api/', include('notifications.urls')),
     path('api/', include('direct_messages.urls')),
+    path('', include(router.urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
