@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Post from '../posts/Post';
@@ -20,15 +20,13 @@ const Profile = () => {
     location: '',
     website: ''
   });
-  const [coverImage, setCoverImage] = useState(null);
-  const [profileImage, setProfileImage] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [searchQuery, setSearchQuery] = useState('');
 
   const currentUsername = localStorage.getItem('username');
   const isOwnProfile = !username || username === currentUsername;
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const profileResponse = await axios.get(
@@ -56,11 +54,11 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUsername]);
 
   useEffect(() => {
     fetchProfile();
-  }, [username]);
+  }, [username, fetchProfile]);
 
   const handleImageUpload = async (type, file) => {
     try {
@@ -97,6 +95,8 @@ const Profile = () => {
       fetchProfile();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du profil:', error);
+    } finally {
+      // Optionnel : Ajouter une logique de nettoyage ou de fin si nécessaire
     }
   };
 

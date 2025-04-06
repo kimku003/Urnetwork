@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { CSSTransition } from 'react-transition-group';
 import { motion } from 'framer-motion';
 import PostContent from './PostContent';
 
@@ -11,30 +10,6 @@ const UserAvatar = ({ username }) => {
   return (
     <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white">
       {username[0].toUpperCase()}
-    </div>
-  );
-};
-
-const SharedPost = ({ post }) => {
-  return (
-    <div className="border rounded-lg p-4 mt-3 bg-gray-50">
-      <div className="flex items-center space-x-3 mb-2">
-        <UserAvatar username={post.author_username} />
-        <div>
-          <div className="font-medium text-sm">{post.author_username}</div>
-          <div className="text-xs text-gray-500">
-            {new Date(post.created_at).toLocaleDateString()}
-          </div>
-        </div>
-      </div>
-      <PostContent content={post.content} />
-      {post.image_url && (
-        <img
-          src={post.image_url}
-          alt=""
-          className="mt-2 rounded-lg max-h-64 w-full object-cover"
-        />
-      )}
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import messageService from '../../services/messageService';
 import { useAuth } from '../../contexts/AuthContext';
 import useWebSocket from '../../hooks/useWebSocket';

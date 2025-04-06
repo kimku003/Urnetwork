@@ -32,7 +32,7 @@ const NavLink = ({ to, icon: Icon, label, isActive }) => (
 );
 
 const DashboardLayout = () => {
-  const [notifications, setNotifications] = useState(3);
+  const [notifications] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();

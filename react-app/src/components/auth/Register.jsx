@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
@@ -17,7 +17,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const validateField = (name, value) => {
+  const validateField = useCallback((name, value) => {
     switch (name) {
       case 'username':
         return value.length < 3 ? 'Le nom d\'utilisateur doit contenir au moins 3 caractères' : '';
@@ -30,7 +30,7 @@ const Register = () => {
       default:
         return '';
     }
-  };
+  }, [formData.password]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,7 +45,7 @@ const Register = () => {
         confirmPassword: validateField('confirmPassword', formData.confirmPassword)
       }));
     }
-  }, [formData.password]);
+  }, [formData.password, formData.confirmPassword, validateField]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
