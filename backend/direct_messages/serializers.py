@@ -17,9 +17,16 @@ class DirectMessageSerializer(serializers.ModelSerializer):
         read_only_fields = ['sender', 'created_at']
 
     def create(self, validated_data):
-        validated_data['sender'] = self.context['request'].user
-        validated_data['recipient'] = validated_data.pop('recipient_id')
-        return super().create(validated_data)
+        try:
+            recipient_id = validated_data.pop('recipient_id')
+            recipient = User.objects.get(id=recipient_id)
+            validated_data['recipient'] = recipient
+            validated_data['sender'] = self.context['request'].user
+            return super().create(validated_data)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({
+                'recipient_id': 'Utilisateur non trouvé'
+            })
 
 class UserMessageSerializer(serializers.ModelSerializer):
     last_message = serializers.SerializerMethodField()

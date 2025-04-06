@@ -5,10 +5,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+import logging
 from .models import DirectMessage
 from .serializers import DirectMessageSerializer
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 class DirectMessageViewSet(viewsets.ModelViewSet):
     serializer_class = DirectMessageSerializer
@@ -75,8 +77,21 @@ class DirectMessageViewSet(viewsets.ModelViewSet):
         serializer.save(sender=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            logger.info(f"Données reçues: {request.data}")
+            serializer = self.get_serializer(data=request.data)
+            
+            if serializer.is_valid():
+                logger.info("Données valides")
+                self.perform_create(serializer)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                logger.error(f"Erreurs de validation: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la création du message: {str(e)}")
+            return Response(
+                {"detail": "Une erreur est survenue lors de l'envoi du message"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
