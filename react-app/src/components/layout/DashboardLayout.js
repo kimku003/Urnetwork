@@ -13,6 +13,8 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { FiMail } from 'react-icons/fi';
+import axios from 'axios';
+import { notificationsApi } from '../../api/notifications';
 
 const NavLink = ({ to, icon: Icon, label, isActive }) => (
   <Link to={to}>
@@ -32,7 +34,7 @@ const NavLink = ({ to, icon: Icon, label, isActive }) => (
 );
 
 const DashboardLayout = () => {
-  const [notifications] = useState(0);
+  const [notifications, setNotifications] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -43,15 +45,30 @@ const DashboardLayout = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await notificationsApi.getUnreadCount();
+        setNotifications(response.data.unread_count);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
+  // Ajouter notifications aux liens de navigation
   const navLinks = [
     { to: '/', icon: HomeIcon, label: 'Accueil' },
     { to: '/profile', icon: UserIcon, label: 'Profil' },
     { to: '/messages', icon: ChatBubbleLeftRightIcon, label: 'Messages' },
+    { to: '/notifications', icon: BellIcon, label: 'Notifications' },
     { to: '/settings', icon: Cog6ToothIcon, label: 'Paramètres' }
   ];
 
@@ -85,41 +102,12 @@ const DashboardLayout = () => {
                     isActive={location.pathname === link.to}
                   />
                 ))}
-                <Link
-                  to="/messages"
-                  className={`inline-flex items-center px-3 py-2 text-sm font-medium 
-                    ${location.pathname.startsWith('/messages') 
-                      ? 'text-blue-500 border-b-2 border-blue-500' 
-                      : 'text-gray-500 dark:text-dark-text-secondary hover:text-gray-700 dark:hover:text-dark-text-primary'
-                    }`}
-                >
-                  <FiMail className="w-5 h-5 mr-1" />
-                  Messages
-                </Link>
               </div>
             </div>
 
             {/* Actions Desktop */}
             <div className="hidden md:flex items-center space-x-4">
-              <NotificationBadge />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="relative p-2 text-gray-600 hover:text-blue-500"
-              >
-                <BellIcon className="w-6 h-6" />
-                {notifications > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
-                  >
-                    {notifications}
-                  </motion.span>
-                )}
-              </motion.button>
-
-              {/* Profil Menu */}
+              <NotificationBadge count={notifications} />
               <div className="relative">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -180,45 +168,45 @@ const DashboardLayout = () => {
             </div>
           </div>
         </div>
-
-        {/* Menu Mobile */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t"
-            >
-              <div className="px-4 py-2 space-y-2">
-                {navLinks.map(link => (
-                  <NavLink
-                    key={link.to}
-                    {...link}
-                    isActive={location.pathname === link.to}
-                  />
-                ))}
-                <hr className="my-2" />
-                <div className="flex items-center justify-between px-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white">
-                      {username?.[0]?.toUpperCase()}
-                    </div>
-                    <span className="text-gray-700">{username}</span>
-                  </div>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleLogout}
-                    className="text-red-600 px-3 py-1 rounded-lg hover:bg-red-50"
-                  >
-                    Déconnexion
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.nav>
+
+      {/* Menu Mobile */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t"
+          >
+            <div className="px-4 py-2 space-y-2">
+              {navLinks.map(link => (
+                <NavLink
+                  key={link.to}
+                  {...link}
+                  isActive={location.pathname === link.to}
+                />
+              ))}
+              <hr className="my-2" />
+              <div className="flex items-center justify-between px-2">
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white">
+                    {username?.[0]?.toUpperCase()}
+                  </div>
+                  <span className="text-gray-700">{username}</span>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleLogout}
+                  className="text-red-600 px-3 py-1 rounded-lg hover:bg-red-50"
+                >
+                  Déconnexion
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Contenu Principal */}
       <main className="container mx-auto px-4 py-8">

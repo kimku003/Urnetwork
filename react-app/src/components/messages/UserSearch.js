@@ -55,8 +55,9 @@ const UserSearch = () => {
 
       {loading && (
         <div className="absolute inset-x-0 top-full mt-2 p-4 bg-white dark:bg-dark-secondary 
-          rounded-lg shadow-lg border dark:border-dark-border">
-          <FiLoader className="animate-spin mx-auto text-blue-500" />
+          rounded-lg shadow-lg border dark:border-dark-border flex justify-center items-center">
+          <FiLoader className="animate-spin text-blue-500 text-2xl" />
+          <span className="ml-2 text-blue-500">Recherche en cours...</span>
         </div>
       )}
 

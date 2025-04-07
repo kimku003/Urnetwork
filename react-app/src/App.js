@@ -8,6 +8,8 @@ import Settings from './components/settings/Settings';
 import DashboardLayout from './components/layout/DashboardLayout';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Messages from './pages/Messages';
+import NotificationsPage from './components/notifications/NotificationsPage';
+import ProfilePage from './pages/ProfilePage';
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -31,6 +33,12 @@ function App() {
           <Route path="messages/*" element={
             <PrivateRoute>
               <Messages />
+            </PrivateRoute>
+          } />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="profile/:username" element={
+            <PrivateRoute>
+              <ProfilePage />
             </PrivateRoute>
           } />
         </Route>

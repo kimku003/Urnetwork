@@ -4,6 +4,7 @@ import messageService from '../../services/messageService';
 import { useAuth } from '../../contexts/AuthContext';
 import useWebSocket from '../../hooks/useWebSocket';
 import Avatar from '../common/Avatar';
+import { motion } from 'framer-motion';
 
 const Conversation = () => {
   const { userId } = useParams();
@@ -106,8 +107,11 @@ const Conversation = () => {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
-          <div
+          <motion.div
             key={message.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             className={`flex ${
               message.sender.id === currentUser?.id ? 'justify-end' : 'justify-start'
             }`}
@@ -124,7 +128,7 @@ const Conversation = () => {
                 {new Date(message.created_at).toLocaleTimeString()}
               </span>
             </div>
-          </div>
+          </motion.div>
         ))}
         <div ref={messagesEndRef} />
       </div>

@@ -10,6 +10,7 @@ import useOnlineStatus from '../../hooks/useOnlineStatus';
 import { useAuth } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import Badge from '../common/Badge';
 
 const MessageList = () => {
   const [conversations, setConversations] = useState([]);
@@ -118,6 +119,9 @@ const MessageList = () => {
                       </p>
                     )}
                     <UnreadBadge count={conversation.unread_count} />
+                    {conversation.unread_count > 0 && (
+                      <Badge text="Nouveau" className="bg-red-500 text-white" />
+                    )}
                   </div>
                 </div>
               </div>

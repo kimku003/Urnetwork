@@ -5,6 +5,7 @@ import './index.css';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -12,7 +13,9 @@ root.render(
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <App />
+          <NotificationProvider>
+            <App />
+          </NotificationProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

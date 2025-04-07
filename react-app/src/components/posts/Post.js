@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import PostContent from './PostContent';
@@ -15,6 +15,17 @@ const UserAvatar = ({ username }) => {
 };
 
 const Post = ({ post, onUpdate }) => {
+  const navigate = useNavigate();
+  const currentUser = localStorage.getItem('username');
+
+  const handleProfileClick = (authorUsername) => {
+    if (authorUsername === currentUser) {
+      navigate('/profile');
+    } else {
+      navigate(`/profile/${authorUsername}`);
+    }
+  };
+
   const [showReactions, setShowReactions] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -78,13 +89,16 @@ const Post = ({ post, onUpdate }) => {
     >
       {/* En-tête du post */}
       <div className="p-4 flex items-center space-x-3">
-        <Link to={`/profile/${post.author_username}`}>
+        <div onClick={() => handleProfileClick(post.author_username)} className="cursor-pointer">
           <UserAvatar username={post.author_username} />
-        </Link>
+        </div>
         <div>
-          <Link to={`/profile/${post.author_username}`} className="font-semibold hover:text-blue-600">
+          <span
+            onClick={() => handleProfileClick(post.author_username)}
+            className="font-semibold hover:text-blue-600 cursor-pointer"
+          >
             {post.author_username}
-          </Link>
+          </span>
           <p className="text-sm text-gray-500">
             {new Date(post.created_at).toLocaleDateString()}
           </p>

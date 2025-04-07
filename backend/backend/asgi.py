@@ -13,6 +13,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from direct_messages.consumers import TokenAuthMiddleware
 from direct_messages.routing import websocket_urlpatterns
+from notifications.routing import websocket_urlpatterns as notifications_websocket_urlpatterns
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
@@ -20,7 +21,9 @@ application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AllowedHostsOriginValidator(
         TokenAuthMiddleware(
-            URLRouter(websocket_urlpatterns)
+            URLRouter(
+                websocket_urlpatterns + notifications_websocket_urlpatterns
+            )
         )
     ),
 })
